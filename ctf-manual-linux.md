@@ -138,6 +138,35 @@ cat data.txt | tr 'A-Za-z' 'N-ZA-Mn-za-m'
 
 ---
 
+## シーザー暗号: シフト数が分かればtr，分からなければ全パターン出力
+
+ROT13は「シフト数13固定」のシーザー暗号だったが，シフト数が13以外・不明な場合も基本の考え方は同じ．
+
+**シフト数が分かっている場合**: `tr`の変換後の文字集合を，そのシフト数だけずらして書けば同じ要領で解ける．
+
+**シフト数が分からない場合**: アルファベットは26文字しかなく，有り得るシフト数は1〜25の25通りだけなので，**全部試して人間の目で読める文章を探す**のが手っ取り早い．
+
+```bash
+python3 -c "
+import string
+text = 'ここに暗号文を入れる'
+alphabet_upper = string.ascii_uppercase
+alphabet_lower = string.ascii_lowercase
+
+for shift in range(1, 26):
+    shifted_upper = alphabet_upper[shift:] + alphabet_upper[:shift]
+    shifted_lower = alphabet_lower[shift:] + alphabet_lower[:shift]
+    table = str.maketrans(alphabet_upper + alphabet_lower, shifted_upper + shifted_lower)
+    print(f'shift={shift}: {text.translate(table)}')
+"
+```
+
+25通り全部の変換結果を出力し，その中から意味の通る文章になっている行を探す．シフト数不明・自動判定（頻度分析）までさせたい場合や，単純なシフトではない複雑な換字式暗号は，`dcode.fr`のような専用サイトの方が向いていることもある．
+
+**教訓**: アルファベットの総数（26）のように，パターンの数が現実的に少ない場合は，賢く1つを推測しようとするより**全部試して目で確認する**方が速いことが多い．
+
+---
+
 ## hexdumpを戻す＋何重にも圧縮されたファイルを剥がす
 
 作業用の一時ディレクトリを作ってから始めると安全．
